@@ -101,6 +101,7 @@ class Market(callbacks.Plugin):
             'bcent': 'Bitcoin-Central',
             'bfx': 'Bitfinex',
             'bitmynt': 'bitmynt.no',
+            'bitmark': 'BTCmarkets',
             'btcavg': 'BitcoinAverage',
             'btcde': 'Bitcoin.de',
             'btce': 'BTC-E',
@@ -846,6 +847,41 @@ class Market(callbacks.Plugin):
                             'high': None,
                             'avg': None})
         self.ticker_cache['butter'+currency] = {'time': time.time(), 'ticker': stdticker}
+        return stdticker
+
+    def _getBitmarkTicker(self, currency):
+        try:
+            cachedvalue = self.ticker_cache['bitmark'+currency]
+            if time.time() - cachedvalue['time'] < 3:
+                return cachedvalue['ticker']
+        except KeyError:
+            pass
+        stdticker = {}
+        json_data = urlopen("https://api.btcmarkets.net/market/BTC/AUD/tick").read()
+        ticker = json.loads(json_data)
+        try:
+            bcharts = json.loads(urlopen("http://api.bitcoincharts.com/v1/markets.json").read())
+            bcharts = filter(lambda x: x['symbol'] == 'btcmarketsAUD', bcharts)[0]
+            avg = float(bcharts['avg'])
+        except:
+            avg = 0
+        yahoorate = 1
+        if currency != 'AUD':
+            try:
+                stdticker = {'warning':'using yahoo currency conversion'}
+                yahoorate = float(self._queryYahooRate('AUD', currency))
+            except:
+                stdticker = {'error':'failed to get currency conversion from yahoo.'}
+                return stdticker
+        stdticker.update({'bid': float(ticker['bestBid'])*yahoorate,
+                            'ask': float(ticker['bestAsk'])*yahoorate,
+                            'last': float(ticker['lastPrice'])*yahoorate,
+                            # 'vol': ticker['volume'],
+                            # 'low': float(ticker['low'])*yahoorate,
+                            # 'high': float(ticker['high'])*yahoorate,
+                            # 'avg': avg*yahoorate
+                          })
+        self.ticker_cache['bitmark'+currency] = {'time':time.time(), 'ticker':stdticker}
         return stdticker
 
     def _sellbtc(self, bids, value):
