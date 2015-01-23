@@ -3,12 +3,13 @@ A webapp and set of plugins for supybot that power a rich alternative currency m
  a chat network.
 
 ## Development Environment Setup
-1. Install GnuPG.
+1. Install [GnuPG](https://www.gnupg.org/).
 2. Create a Python environment or virtualenv and activate it.
 3. In that environment:
 
-        pip install ecdsa # For the GPG plugin
-        pip install lxml # For the GPGExt plugin
+        pip install --upgrade ecdsa # For the GPG plugin
+        pip install --upgrade lxml # For the GPGExt plugin
+	pip install --upgrade python-gnupg # For the GPG and GPGExt plugin
 
 4. Download gribble source code:
 
