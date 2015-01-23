@@ -42,7 +42,7 @@ class RatingSystemDB(object):
         
         which sometimes happens due to:
         OperationalError: database is locked'''
-        for i in xrange(10):
+        for i in range(10):
             try:
                 self.db.commit()
             except:
@@ -321,8 +321,8 @@ class RatingSystem(callbacks.Plugin):
         if gpgauth['nick'].lower() == nick.lower():
             irc.error("You cannot rate yourself.")
             return
-        validratings = range(self.registryValue('ratingMin'),
-                             self.registryValue('ratingMax')+1)
+        validratings = list(range(self.registryValue('ratingMin'),
+                                  self.registryValue('ratingMax')+1))
         validratings.remove(0)
         if rating not in validratings:
             irc.error("Rating must be in the interval [%s, %s] and cannot be zero." % \
