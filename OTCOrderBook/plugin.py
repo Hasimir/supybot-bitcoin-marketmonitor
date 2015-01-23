@@ -44,7 +44,7 @@ class OTCOrderDB(object):
         
         which sometimes happens due to:
         OperationalError: database is locked'''
-        for i in xrange(10):
+        for i in range(10):
             try:
                 self.db.commit()
             except:
@@ -185,7 +185,7 @@ def getIndexedPrice(irc, msg, args, state, type='price input'):
         v = re.sub(r'{bitstamp(ask|bid|last|high|low|avg)}', '1', v)
         v = re.sub(r'{... in ...}', '1', v, 1)
         if not set(v).issubset(set('1234567890*-+./() ')) or '**' in v:
-            raise ValueError, "only {mtgox(ask|bid|last|high|low|avg)}, {bitstamp(ask|bid|last|high|low|avg)}, one {... in ...}, and arithmetic allowed."
+            raise ValueError("only {mtgox(ask|bid|last|high|low|avg)}, {bitstamp(ask|bid|last|high|low|avg)}, one {... in ...}, and arithmetic allowed.")
         eval(v)
         state.args.append(args[0])
         del args[0]
@@ -196,7 +196,7 @@ def getPositiveFloat(irc, msg, args, state, type='positive floating point number
     try:
         v = float(args[0])
         if v <= 0:
-            raise ValueError, "only positive numbers allowed."
+            raise ValueError("only positive numbers allowed.")
         state.args.append(v)
         del args[0]
     except ValueError:
@@ -206,7 +206,7 @@ def getNonNegativeFloat(irc, msg, args, state, type=' floating point number'):
     try:
         v = float(args[0])
         if v < 0:
-            raise ValueError, "only non-negative numbers allowed."
+            raise ValueError("only non-negative numbers allowed.")
         state.args.append(v)
         del args[0]
     except ValueError:
@@ -273,7 +273,7 @@ class OTCOrderBook(callbacks.Plugin):
         yahoorate = json.loads(yahoorate, parse_float=str, parse_int=str)
         rate = yahoorate['query']['results']['rate']['Rate']
         if float(rate) == 0:
-            raise ValueError, "no data"
+            raise ValueError("no data")
         self.currency_cache[cur1 + cur2] = {'time':time.time(), 'rate':rate}
         return rate
 
@@ -326,7 +326,7 @@ class OTCOrderBook(callbacks.Plugin):
                       self.registryValue('maxUserOpenOrders'))
             return
         extratime = 0
-        if dict(optlist).has_key('long'):
+        if 'long' in dict(optlist):
             extratime = self.registryValue('longOrderDuration')
             trust = self._getTrust(irc, 'nanotube', gpgauth['nick'])
             sumtrust = sum([t for t,n in trust])
@@ -374,7 +374,7 @@ class OTCOrderBook(callbacks.Plugin):
                       self.registryValue('maxUserOpenOrders'))
             return
         extratime = 0
-        if dict(optlist).has_key('long'):
+        if 'long' in dict(optlist):
             extratime = self.registryValue('longOrderDuration')
             trust = self._getTrust(irc, 'nanotube', gpgauth['nick'])
             sumtrust = sum([t for t,n in trust])
@@ -412,7 +412,7 @@ class OTCOrderBook(callbacks.Plugin):
                       "to use the order book.")
             return
         extratime = 0
-        if dict(optlist).has_key('long'):
+        if 'long' in dict(optlist):
             extratime = self.registryValue('longOrderDuration')
             trust = self._getTrust(irc, 'nanotube', gpgauth['nick'])
             sumtrust = sum([t for t,n in trust])
