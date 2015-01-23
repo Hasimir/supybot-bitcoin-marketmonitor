@@ -47,6 +47,7 @@ import supybot.world as world
 from supybot import schedule
 from supybot import ircmsgs
 from supybot import conf
+from functools import reduce
 
 class MarketMonitor(callbacks.Plugin):
     """Monitor a telnet push server for bitcoin trade data."""
@@ -78,7 +79,7 @@ class MarketMonitor(callbacks.Plugin):
                 self.conn.open(self.registryValue('server'),
                                     self.registryValue('port'))
                 return True
-            except Exception, e:
+            except Exception as e:
                 # this may get verbose, but let's leave this in for now.
                 self.log.error('MarketMonitor: reconnect error: %s: %s' % \
                             (e.__class__.__name__, str(e)))
@@ -90,7 +91,7 @@ class MarketMonitor(callbacks.Plugin):
         while not self.e.isSet():
             try:
                 lines = self.conn.read_very_eager()
-            except Exception, e:
+            except Exception as e:
                 self.log.error('Error in MarketMonitor reading telnet: %s: %s' % \
                             (e.__class__.__name__, str(e)))
                 self._reconnect()
@@ -99,7 +100,7 @@ class MarketMonitor(callbacks.Plugin):
                 if irc.getCallback('Services').identified and lines: #Make sure you're running the Services plugin, and are identified!
                     lines = lines.split("\n")
                     self._parse(lines)
-            except Exception, e:
+            except Exception as e:
                 self.log.error('Error in MarketMonitor parsing: %s: %s' % \
                             (e.__class__.__name__, str(e)))
                 continue # keep going no matter what
@@ -113,7 +114,7 @@ class MarketMonitor(callbacks.Plugin):
                         self.nextsend = time.time()+(conf.supybot.protocols.irc.throttleTime() * len(outputs))
                     self.marketdata = {}
                     self.raw = []
-            except Exception, e:
+            except Exception as e:
                 self.log.error('Error in MarketMonitor sending: %s: %s' % \
                             (e.__class__.__name__, str(e)))
                 continue # keep going no matter what
@@ -151,7 +152,7 @@ class MarketMonitor(callbacks.Plugin):
                 if (market, currency) not in self.marketdata:
                     self.marketdata[(market, currency)] = []
                 self.marketdata[(market, currency)].append((volume, price, stamp))
-            except Exception, e:
+            except Exception as e:
                 # we really want to keep going no matter what data we get
                 self.log.error('Error in MarketMonitor parsing: %s: %s' % \
                                 (e.__class__.__name__, str(e)))
@@ -166,7 +167,7 @@ class MarketMonitor(callbacks.Plugin):
         # Making a pretty output
         outputs = []
         try:
-            for (market, currency), txs in self.marketdata.iteritems():
+            for (market, currency), txs in list(self.marketdata.items()):
                 if len(txs) >= self.registryValue('collapseThreshold'):
                     # Collapse transactions to a single transaction with degeneracy
                     (sumvol, sumpr, sumst) = reduce((lambda (sumvol, sumpr, sumst), (vol, pr, st): (sumvol+vol, sumpr+(pr*vol), sumst+(st*vol))), txs, (0,0,0))
@@ -188,7 +189,7 @@ class MarketMonitor(callbacks.Plugin):
                         outputs.append((st,out))
 
             outputs.sort()
-        except Exception, e:
+        except Exception as e:
             # we really want to keep going no matter what data we get
             self.log.error('Error in MarketMonitor formatting: %s: %s' % \
                             (e.__class__.__name__, str(e)))
@@ -265,7 +266,7 @@ class MarketMonitor(callbacks.Plugin):
         q = decimal.Decimal(10) ** -places      # 2 places --> '0.01'
         sign, digits, exp = value.quantize(q).as_tuple()
         result = []
-        digits = map(str, digits)
+        digits = list(map(str, digits))
         build, next = result.append, digits.pop
         if sign:
             build(trailneg)
