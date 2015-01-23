@@ -22,7 +22,8 @@ A webapp and set of plugins for supybot that power a rich alternative currency m
 
 6. Create a directory to be the bot's home and `cd` to it.
 7. Run `supybot-wizard` to create the bot's directory structure and initial configuration.
-  * Some plugins expect the bot to be present in #bitcoin-otc, #bitcoin-otc-auth, and #bitcoin-otc-ticker
+  * Some plugins expect the bot to be present in #bitcoin-otc, #bitcoin-otc-auth, and #bitcoin-otc-ticker (this can be modified).
+  * Some plugins direct output to bitcoin-otc.com and b-otc.com websites (this can also be modified).
 
 8. Symlink or copy desired supybot-bitcoin-marketmonitor's directories over to the bot's new plugins directory.
 
