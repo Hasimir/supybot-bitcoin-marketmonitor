@@ -35,7 +35,7 @@ import time
 import re
 import json
 import datetime
-from urllib2 import urlopen
+from urllib.request import urlopen
 
 import supybot.utils as utils
 from supybot.commands import *
@@ -72,7 +72,7 @@ class MarketMonitorTicker(callbacks.Plugin):
             self.freshticker = None
             try:
                 self.freshticker = self._getTicker()
-            except Exception, e:
+            except Exception as e:
                 self.log.error('Error in MarketMonitorTicker: %s: %s' % \
                             (e.__class__.__name__, str(e)))
                 continue
@@ -82,7 +82,7 @@ class MarketMonitorTicker(callbacks.Plugin):
                     if output:
                         for chan in self.registryValue('channels'):
                             irc.queueMsg(ircmsgs.privmsg(chan, output))
-            except Exception, e:
+            except Exception as e:
                 self.log.error('Error in MarketMonitorTicker: %s: %s' % \
                             (e.__class__.__name__, str(e)))
                 continue # keep going no matter what
@@ -124,7 +124,7 @@ class MarketMonitorTicker(callbacks.Plugin):
                 else:
                     colorlist.append('light gray')
 
-        coloredlist = map(ircutils.mircColor, datalist, colorlist)
+        coloredlist = list(map(ircutils.mircColor, datalist, colorlist))
         
         self.cachedticker = self.freshticker
         

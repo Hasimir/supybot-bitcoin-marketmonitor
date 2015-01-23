@@ -34,6 +34,7 @@ as well as some other useful commands.
 
 import supybot
 import supybot.world as world
+import imp
 
 __version__ = "%%VERSION%%"
 
@@ -43,12 +44,12 @@ __author__ = supybot.authors.jemfinch
 # contributions.
 __contributors__ = {}
 
-import config
-import plugin
-reload(plugin) # In case we're being reloaded.
+from . import config
+from . import plugin
+imp.reload(plugin) # In case we're being reloaded.
 
 if world.testing:
-    import test
+    from . import test
     
 Class = plugin.Class
 configure = config.configure
