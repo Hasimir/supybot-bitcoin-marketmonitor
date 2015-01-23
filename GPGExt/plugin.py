@@ -119,7 +119,7 @@ class GPGExt(callbacks.Plugin):
         registered gpg key. If <nick> is omitted, uses the requestor's registered nick.
         """
         result = self._verifySetup(irc, msg, nick)
-        if result.has_key('error'):
+        if 'error' in result:
             irc.error(result['error'])
             return
         try:
@@ -128,11 +128,11 @@ class GPGExt(callbacks.Plugin):
             irc.error("Problem retrieving target url.")
             return
         result.update(self._verifyCont(irc, msg, pagedata))
-        if result.has_key('error'):
+        if 'error' in result:
             irc.error(result['error'])
             return
         result.update(self._verifyGPGSigData(irc, result['signedmsg'], result['keyid']))
-        if result.has_key('error'):
+        if 'error' in result:
             irc.error("GPG identity tag failed to verify with key id %s. Reason: %s" % \
                     (result['keyid'], result['error']))
             return
@@ -152,7 +152,7 @@ class GPGExt(callbacks.Plugin):
         If <nick> is omitted, uses the requestor's registered nick.
         """
         result = self._verifySetup(irc, msg, nick)
-        if result.has_key('error'):
+        if 'error' in result:
             irc.error(result['error'])
             return
         try:
@@ -168,16 +168,16 @@ class GPGExt(callbacks.Plugin):
         context = etree.iterwalk(tree, tag='div')
         ebaybio = ''
         for _, element in context:
-            for item in element.items():
+            for item in list(element.items()):
                 if item[0] == 'id' and item[1] == 'PortalColumnTwo':
                     ebaybio = etree.tostring(element)
 
         result.update(self._verifyCont(irc, msg, ebaybio))
-        if result.has_key('error'):
+        if 'error' in result:
             irc.error(result['error'])
             return
         result.update(self._verifyGPGSigData(irc, result['signedmsg'], result['keyid']))
-        if result.has_key('error'):
+        if 'error' in result:
             irc.error("GPG identity tag failed to verify with key id %s. Reason: %s" % \
                     (result['keyid'], result['error']))
             return
