@@ -17,18 +17,18 @@
 #
 ###
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import json
 
-opener = urllib2.build_opener()
+opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0')]
-urllib2.install_opener(opener)
+urllib.request.install_opener(opener)
 
 def get_bitstamp_ticker():
     try:
-        json_data = urllib2.urlopen("https://www.bitstamp.net/api/ticker/").read()
+        json_data = urllib.request.urlopen("https://www.bitstamp.net/api/ticker/").read()
         ticker = json.loads(json_data)
-        bcharts = json.loads(urllib2.urlopen("http://api.bitcoincharts.com/v1/markets.json").read())
+        bcharts = json.loads(urllib.request.urlopen("http://api.bitcoincharts.com/v1/markets.json").read())
         bcharts = filter(lambda x: x['symbol'] == 'bitstampUSD', bcharts)[0]
         stdticker = {'bid': ticker['bid'],
                             'ask': ticker['ask'],
@@ -43,9 +43,9 @@ def get_bitstamp_ticker():
 
 def get_mtgox_ticker():
     try:
-        json_data = urllib2.urlopen("https://data.mtgox.com/api/2/BTC%s/money/ticker" % ('USD',)).read()
+        json_data = urllib.request.urlopen("https://data.mtgox.com/api/2/BTC%s/money/ticker" % ('USD',)).read()
         ticker = json.loads(json_data)
-        ftj = urllib2.urlopen("http://data.mtgox.com/api/2/BTC%s/money/ticker_fast" % ('USD',)).read()
+        ftj = urllib.request.urlopen("http://data.mtgox.com/api/2/BTC%s/money/ticker_fast" % ('USD',)).read()
         tf = json.loads(ftj)
         if ticker['result'] != 'error' and tf['result'] != 'error': # use fast ticker where available
             ticker['data']['buy']['value'] = tf['data']['buy']['value']

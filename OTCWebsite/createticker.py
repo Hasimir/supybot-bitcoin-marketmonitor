@@ -18,7 +18,7 @@
 ###
 
 import sqlite3
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 import json
 import os
@@ -59,19 +59,19 @@ class Quote:
         conv = re.search(r'{(...) in (...)}', rawprice)
         if conv is None:
             return rawprice
-        if conv.group(0).lower() not in self.currency_rates.keys():
+        if conv.group(0).lower() not in list(self.currency_rates.keys()):
             googlerate = self._queryGoogleRate(conv.group(1), conv.group(2))
             self.currency_rates[conv.group(0).lower()] = googlerate
         indexedprice = re.sub(r'{... in ...}', self.currency_rates[conv.group(0)], rawprice)
         return indexedprice
 
     def _queryGoogleRate(self, cur1, cur2):
-        googlerate =urllib2.urlopen('http://www.google.com/ig/calculator?hl=en&q=1%s=?%s' % \
-                (cur1, cur2,)).read()
+        # Should consider replacing this urllib ugliness with requests!
+        googlerate =urllib.request.urlopen('http://www.google.com/ig/calculator?hl=en&q=1{0}=?{1}'.format(cur1, cur2)).read()
         googlerate = re.sub(r'(\w+):', r'"\1":', googlerate) # badly formed json, missing quotes
         googlerate = json.loads(googlerate, parse_float=str, parse_int=str)
         if googlerate['error']:
-            raise ValueError, googlerate['error']
+            raise ValueError(googlerate['error'])
         return googlerate['rhs'].split()[0]
 
     def _getIndexedValue(self, rawprice, inverse=False):
@@ -127,7 +127,7 @@ class QuoteCreator:
         self.write_json()
 
     def get_mtgox_quote(self):
-        mtgox_ticker = urllib2.urlopen('https://data.mtgox.com/api/2/BTCUSD/money/ticker').read()
+        mtgox_ticker = urllib.request.urlopen('https://data.mtgox.com/api/2/BTCUSD/money/ticker').read()
         self.mtgox_ticker = json.loads(mtgox_ticker, parse_float=str, parse_int=str)
         self.mtgox_ticker = self.mtgox_ticker['data']
 

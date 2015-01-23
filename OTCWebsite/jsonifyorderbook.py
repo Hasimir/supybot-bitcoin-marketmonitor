@@ -14,7 +14,7 @@ class JsonifyOrderBook:
         cursor = self.db.cursor()
         cursor.execute("""SELECT id,created_at,refreshed_at,buysell,nick,amount,thing,price,otherthing,notes FROM orders""")
         for row in cursor:
-            d = dict(zip(['id','created_at','refreshed_at','buysell','nick','amount','thing','price','otherthing','notes'],row))
+            d = dict(list(zip(['id','created_at','refreshed_at','buysell','nick','amount','thing','price','otherthing','notes'],row)))
             if not i:
                 f.write(',')
             try:
