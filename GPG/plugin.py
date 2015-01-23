@@ -41,13 +41,11 @@ import traceback
 try:
     gnupg = utils.python.universalImport('gnupg', 'local.gnupg')
 except ImportError:
-    raise callbacks.Error, \
-            "You need the gnupg module installed to use this plugin." 
+    raise callbacks.Error("You need the gnupg module installed to use this plugin.")
 try:
     bitcoinsig = utils.python.universalImport('local.bitcoinsig')
 except ImportError:
-    raise callbacks.Error, \
-            "You are possibly missing the ecdsa module." 
+    raise callbacks.Error("You are possibly missing the ecdsa module.")
 
 
 domainRe = re.compile('^' + utils.web._domain + '$', re.I)
@@ -63,7 +61,7 @@ class GPGDB(object):
         
         which sometimes happens due to:
         OperationalError: database is locked'''
-        for i in xrange(10):
+        for i in range(10):
             try:
                 self.db.commit()
             except:
@@ -198,14 +196,14 @@ class GPG(callbacks.Plugin):
         self.db.open()
         try:
             os.makedirs(conf.supybot.directories.data.dirize('otps'))
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
         self.gpg = gnupg.GPG(gnupghome = conf.supybot.directories.data.dirize('GPGkeyring'))
         try: #restore auth dicts, if we're reloading the plugin
             self.authed_users = utils.gpg_authed_users
             utils.gpg_authed_users = {}
-            authednicks = [v['nick'] for k,v in self.authed_users.iteritems()]
+            authednicks = [v['nick'] for k,v in self.authed_users.items()]
             self.db.reset_auth_status(authednicks)
             self.pending_auth = utils.gpg_pending_auth
             utils.gpg_pending_auth = {}
@@ -236,7 +234,7 @@ class GPG(callbacks.Plugin):
         for ks in keyservers:
             try:
                 result = self.gpg.recv_keys(ks, keyid)
-                if result.results[0].has_key('ok'):
+                if 'ok' in result.results[0]:
                     return result.results[0]['fingerprint']
             except:
                continue
@@ -245,7 +243,7 @@ class GPG(callbacks.Plugin):
 
     def _removeExpiredRequests(self):
         pending_auth_copy = copy.deepcopy(self.pending_auth)
-        for hostmask,auth in pending_auth_copy.iteritems():
+        for hostmask,auth in pending_auth_copy.items():
             try:
                 if time.time() - auth['expiry'] > self.registryValue('authRequestTimeout'):
                     if auth['type'] == 'register' and not self.db.getByKey(auth['keyid']):
@@ -352,12 +350,12 @@ class GPG(callbacks.Plugin):
         try:
             data = self.gpg.encrypt(challenge + '\n', keyid, always_trust=True)
             if data.status != "encryption ok":
-                raise ValueError, "problem encrypting otp"
+                raise ValueError("problem encrypting otp")
             otpfn = conf.supybot.directories.data.dirize('otps/%s' % (keyid,))
             f = open(otpfn, 'w')
             f.write(data.data)
             f.close()
-        except Exception, e:
+        except Exception as e:
             irc.error("Problem creating encrypted OTP file.")
             self.log.info("GPG eregister: key %s, otp creation %s, exception %s" % \
                     (keyid, data.stderr, e,))
@@ -464,12 +462,12 @@ class GPG(callbacks.Plugin):
             data = None
             data = self.gpg.encrypt(challenge + '\n', keyid, always_trust=True)
             if data.status != "encryption ok":
-                raise ValueError, "problem encrypting otp"
+                raise ValueError("problem encrypting otp")
             otpfn = conf.supybot.directories.data.dirize('otps/%s' % (keyid,))
             f = open(otpfn, 'w')
             f.write(data.data)
             f.close()
-        except Exception, e:
+        except Exception as e:
             irc.error("Problem creating encrypted OTP file.")
             if 'stderr' in dir(data):
                 gpgerroroutput = data.stderr
@@ -860,12 +858,12 @@ class GPG(callbacks.Plugin):
         try:
             data = self.gpg.encrypt(challenge + '\n', keyid, always_trust=True)
             if data.status != "encryption ok":
-                raise ValueError, "problem encrypting otp"
+                raise ValueError("problem encrypting otp")
             otpfn = conf.supybot.directories.data.dirize('otps/%s' % (keyid,))
             f = open(otpfn, 'w')
             f.write(data.data)
             f.close()
-        except Exception, e:
+        except Exception as e:
             irc.error("Problem creating encrypted OTP file.")
             self.log.info("GPG echangekey: key %s, otp creation %s, exception %s" % \
                     (keyid, data.stderr, e,))
@@ -964,9 +962,9 @@ class GPG(callbacks.Plugin):
         Returns the registration details of registered user <nick>.
         If '--key' option is given, interpret <nick> as a GPG key ID.
         """
-        if 'key' in dict(optlist).keys():
+        if 'key' in list(dict(optlist).keys()):
             result = self.db.getByKey(nick)
-        elif 'address' in dict(optlist).keys():
+        elif 'address' in list(dict(optlist).keys()):
             result = self.db.getByAddr(nick)
         else:
             result = self.db.getByNick(nick)
@@ -1010,7 +1008,7 @@ class GPG(callbacks.Plugin):
         return self.authed_users.get(hostmask, None)
 
     def _identByNick(self, nick):
-        for k,v in self.authed_users.iteritems():
+        for k,v in self.authed_users.items():
             if v['nick'].lower() == nick.lower():
                 return k
         return None
@@ -1062,7 +1060,7 @@ class GPG(callbacks.Plugin):
                     pass
 
     def doNick(self, irc, msg):
-        if msg.prefix in self.authed_users.keys():
+        if msg.prefix in list(self.authed_users.keys()):
             newprefix = msg.args[0] + '!' + msg.prefix.split('!',1)[1]
             logmsg = "Attaching authentication for hostmask %s to new hostmask %s due to nick change." %\
                     (msg.prefix, newprefix,)

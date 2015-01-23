@@ -26,17 +26,15 @@ from supybot import utils
 try:
     gnupg = utils.python.universalImport('gnupg', 'local.gnupg')
 except ImportError:
-    raise callbacks.Error, \
-            "You need the gnupg module installed to use this plugin." 
+    raise callbacks.Error("You need the gnupg module installed to use this plugin.")
 
 try:
     bitcoinsig = utils.python.universalImport('local.bitcoinsig')
 except ImportError:
-    raise callbacks.Error, \
-            "You are possibly missing the ecdsa module." 
+    raise callbacks.Error("You are possibly missing the ecdsa module.")
 
 
-from xmlrpclib import ServerProxy
+from xmlrpc.client import ServerProxy
 import shutil
 import os, os.path
 import time
@@ -107,7 +105,7 @@ class GPGTestCase(PluginTestCase):
         self.assertError('register someone 0x23420982') # bad length
         self.assertError('register someone 0xAAAABBBBCCCCDDDD') #doesn't exist
         m = self.getMsg('register someone %s' % (self.testkeyid,)) #test without keyserver arg
-        self.failUnless('Request successful' in str(m))
+        self.assertTrue('Request successful' in str(m))
         challenge = str(m).split('is: ')[1]
         sd = self.cb.gpg.sign(challenge, keyid = self.testkeyid)
         rc = self.s.paste.addPaste(sd.data, 'gpgtest', 60)
@@ -130,7 +128,7 @@ class GPGTestCase(PluginTestCase):
         self.assertError('eregister someone 0x23420982') # bad length
         self.assertError('eregister someone 0xAAAABBBBCCCCDDDD') #doesn't exist
         m = self.getMsg('eregister someone %s' % (self.testkeyid,)) #test without keyserver arg
-        self.failUnless('Request successful' in str(m))
+        self.assertTrue('Request successful' in str(m))
         encrypteddata = open(os.path.join(os.getcwd(), 'test-data/otps/%s' % (self.testkeyid,)), 'r').read()
         decrypted = self.cb.gpg.decrypt(encrypteddata)
         self.assertRegexp('everify %s' % (decrypted.data.strip(),), 
@@ -153,7 +151,7 @@ class GPGTestCase(PluginTestCase):
         # default test user hostmask: test!user@host.domain.tld
         self.assertRegexp('gpg ident', 'not identified')
         m = self.getMsg('bcregister someone %s' % (bitcoinaddress,))
-        self.failUnless('Request successful' in str(m))
+        self.assertTrue('Request successful' in str(m))
         challenge = str(m).split('is: ')[1].strip()
         sig = bitcoinsig.sign_message(private_key, challenge)
         time.sleep(1)
@@ -184,7 +182,7 @@ class GPGTestCase(PluginTestCase):
         gpg.db.register(self.testkeyid, self.testkeyfingerprint,'1somebitcoinaddress',
                     time.time(), 'someone')
         m = self.getMsg('auth someone')
-        self.failUnless('Request successful' in str(m))
+        self.assertTrue('Request successful' in str(m))
         challenge = str(m).split('is: ')[1]
         sd = self.cb.gpg.sign(challenge, keyid = self.testkeyid)
         rc = self.s.paste.addPaste(sd.data, 'gpgtest', 60)
@@ -200,7 +198,7 @@ class GPGTestCase(PluginTestCase):
                     time.time(), 'someone')
         self.assertNotError('eauth someone')
         m = self.getMsg('eauth someone')
-        self.failUnless('Request successful' in str(m))
+        self.assertTrue('Request successful' in str(m))
         encrypteddata = open(os.path.join(os.getcwd(), 'test-data/otps/%s' % (self.testkeyid,)), 'r').read()
         decrypted = self.cb.gpg.decrypt(encrypteddata)
         self.assertRegexp('everify %s' % (decrypted.data.strip(),), 'You are now authenticated')
@@ -216,7 +214,7 @@ class GPGTestCase(PluginTestCase):
         gpg.db.register(self.testkeyid, self.testkeyfingerprint, bitcoinaddress,
                     time.time(), 'someone')
         m = self.getMsg('bcauth someone')
-        self.failUnless('Request successful' in str(m))
+        self.assertTrue('Request successful' in str(m))
         challenge = str(m).split('is: ')[1].strip()
         sig = bitcoinsig.sign_message(private_key, challenge)
         time.sleep(1)
@@ -236,7 +234,7 @@ class GPGTestCase(PluginTestCase):
         self.prefix = 'authedguy2!stuff@123.345.234.34'
         self.assertRegexp('gpg ident', 'is identified')
         m = self.getMsg('gpg changekey %s' % (self.testkeyid,))
-        self.failUnless('Request successful' in str(m))
+        self.assertTrue('Request successful' in str(m))
         challenge = str(m).split('is: ')[1]
         sd = self.cb.gpg.sign(challenge, keyid = self.testkeyid)
         rc = self.s.paste.addPaste(sd.data, 'gpgtest', 60)
@@ -250,7 +248,7 @@ class GPGTestCase(PluginTestCase):
         self.prefix = 'authedguy2!stuff@123.345.234.34'
         self.assertRegexp('gpg ident', 'is identified')
         m = self.getMsg('gpg echangekey %s' % (self.testkeyid,))
-        self.failUnless('Request successful' in str(m))
+        self.assertTrue('Request successful' in str(m))
         encrypteddata = open(os.path.join(os.getcwd(), 'test-data/otps/%s' % (self.testkeyid,)), 'r').read()
         decrypted = self.cb.gpg.decrypt(encrypteddata)
         self.assertRegexp('everify %s' % (decrypted.data.strip(),),
@@ -267,7 +265,7 @@ class GPGTestCase(PluginTestCase):
         self.prefix = 'authedguy2!stuff@123.345.234.34'
         self.assertRegexp('gpg ident', 'is identified')
         m = self.getMsg('gpg changeaddress %s' % (bitcoinaddress,))
-        self.failUnless('Request successful' in str(m))
+        self.assertTrue('Request successful' in str(m))
         challenge = str(m).split('is: ')[1].strip()
         sig = bitcoinsig.sign_message(private_key, challenge)
         time.sleep(1)
