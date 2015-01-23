@@ -8,12 +8,12 @@ import hashlib
 from ecdsa.util import string_to_number
 
 # secp256k1, http://www.oid-info.com/get/1.3.132.0.10
-_p = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2FL
-_r = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141L
-_b = 0x0000000000000000000000000000000000000000000000000000000000000007L
-_a = 0x0000000000000000000000000000000000000000000000000000000000000000L
-_Gx = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798L
-_Gy = 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8L
+_p = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+_r = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+_b = 0x0000000000000000000000000000000000000000000000000000000000000007
+_a = 0x0000000000000000000000000000000000000000000000000000000000000000
+_Gx = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+_Gy = 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8
 curve_secp256k1 = ecdsa.ellipticcurve.CurveFp( _p, _a, _b )
 generator_secp256k1 = ecdsa.ellipticcurve.Point( curve_secp256k1, _Gx, _Gy, _r )
 oid_secp256k1 = (1,3,132,0,10)
@@ -90,7 +90,7 @@ def modular_sqrt(a, p):
     while True:
         t = b
         m = 0
-        for m in xrange(r):
+        for m in range(r):
             if t == 1:
                 break
             t = pow(t, 2, p)
@@ -123,7 +123,7 @@ def b58encode(v):
     """ encode v, which is a string of bytes, to base58.		
     """
 
-    long_value = 0L
+    long_value = 0
     for (i, c) in enumerate(v[::-1]):
         long_value += (256**i) * ord(c)
 
@@ -239,30 +239,30 @@ def verify_message(address, signature, message):
         
 if __name__ == '__main__':
     # some simple testing code
-    print verify_message('16vqGo3KRKE9kTsTZxKoJKLzwZGTodK3ce',
+    print(verify_message('16vqGo3KRKE9kTsTZxKoJKLzwZGTodK3ce',
             'HPDs1TesA48a9up4QORIuub67VHBM37X66skAYz0Esg23gdfMuCTYDFORc6XGpKZ2/flJ2h/DUF569FJxGoVZ50=',
-            'test message') # good
-    print verify_message('16vqGo3KRKE9kTsTZxKoJKLzwZGTodK3ce',
+            'test message')) # good
+    print(verify_message('16vqGo3KRKE9kTsTZxKoJKLzwZGTodK3ce',
             'HPDs1TesA48a9up4QORIuub67VHBM37X66skAYz0Esg23gdfMuCTYDFORc6XGpKZ2/flJ2h/DUF569FJxGoVZ50=',
-            'test message 2') # bad
+            'test message 2')) # bad
 
-    private_key = ecdsa.SigningKey.from_string( '5JkuZ6GLsMWBKcDWa5QiD15Uj467phPR', curve = SECP256k1 )
+    private_key = ecdsa.SigningKey.from_string('5JkuZ6GLsMWBKcDWa5QiD15Uj467phPR', curve = SECP256k1)
     public_key = private_key.get_verifying_key()
-    bitcoinaddress = public_key_to_bc_address( encode_point(public_key) )
-    print bitcoinaddress
+    bitcoinaddress = public_key_to_bc_address(encode_point(public_key))
+    print(bitcoinaddress)
     sig = sign_message(private_key, 'test message')
-    print sig
-    print verify_message(bitcoinaddress, sig, 'test message')
-    print verify_message('1GdKjTSg2eMyeVvPV5Nivo6kR8yP2GT7wF',
+    print(sig)
+    print(verify_message(bitcoinaddress, sig, 'test message'))
+    print(verify_message('1GdKjTSg2eMyeVvPV5Nivo6kR8yP2GT7wF',
             'GyMn9AdYeZIPWLVCiAblOOG18Qqy4fFaqjg5rjH6QT5tNiUXLS6T2o7iuWkV1gc4DbEWvyi8yJ8FvSkmEs3voWE=',
-            'freenode:#bitcoin-otc:b42f7e7ea336db4109df6badc05c6b3ea8bfaa13575b51631c5178a7')
+            'freenode:#bitcoin-otc:b42f7e7ea336db4109df6badc05c6b3ea8bfaa13575b51631c5178a7'))
 
-    print verify_message('1Hpj6xv9AzaaXjPPisQrdAD2tu84cnPv3f',
+    print(verify_message('1Hpj6xv9AzaaXjPPisQrdAD2tu84cnPv3f',
             'INEJxQnSu6mwGnLs0E8eirl5g+0cAC9D5M7hALHD9sK0XQ66CH9mas06gNoIX7K1NKTLaj3MzVe8z3pt6apGJ34=',
-            'testtest')
-    print verify_message('18uitB5ARAhyxmkN2Sa9TbEuoGN1he83BX',
+            'testtest'))
+    print(verify_message('18uitB5ARAhyxmkN2Sa9TbEuoGN1he83BX',
             'IMAtT1SjRyP6bz6vm5tKDTTTNYS6D8w2RQQyKD3VGPq2i2txGd2ar18L8/nvF1+kAMo5tNc4x0xAOGP0HRjKLjc=',
-            'testtest')
+            'testtest'))
 
     # sign compressed key
     compressed = True
@@ -270,14 +270,14 @@ if __name__ == '__main__':
     private_key = ecdsa.SigningKey.from_string( secret, curve = SECP256k1 )
     public_key = private_key.get_verifying_key()
     bitcoinaddress = public_key_to_bc_address( encode_point(public_key, compressed) )
-    print bitcoinaddress
+    print(bitcoinaddress)
 
     sig = sign_message(private_key, 'test message', compressed)
-    print sig
+    print(sig)
 
-    print verify_message(bitcoinaddress, sig, 'test message')
+    print(verify_message(bitcoinaddress, sig, 'test message'))
 
-    print verify_message('1LsPb3D1o1Z7CzEt1kv5QVxErfqzXxaZXv',
+    print(verify_message('1LsPb3D1o1Z7CzEt1kv5QVxErfqzXxaZXv',
             'H3I37ur48/fn52ZvWQT+Mj2wXL36gyjfaN5qcgfiVRTJb1eP1li/IacCQspYnUntiRv8r6GDfJYsdiQ5VzlG3As=',
-            'testtest')
+            'testtest'))
 
