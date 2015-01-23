@@ -39,11 +39,11 @@ from supybot.utils.seq import dameraulevenshtein
 
 import re
 import json
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import time
 import traceback
 
-opener = urllib2.build_opener()
+opener = urllib.request.build_opener()
 opener.addheaders = [('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0')]
 urlopen = opener.open
 
@@ -51,7 +51,7 @@ def getNonNegativeFloat(irc, msg, args, state, type='non-negative floating point
     try:
         v = float(args[0])
         if v < 0:
-            raise ValueError, "only non-negative numbers allowed."
+            raise ValueError("only non-negative numbers allowed.")
         state.args.append(v)
         del args[0]
     except ValueError:
@@ -61,7 +61,7 @@ def getPositiveFloat(irc, msg, args, state, type='positive floating point number
     try:
         v = float(args[0])
         if v <= 0:
-            raise ValueError, "only positive numbers allowed."
+            raise ValueError("only positive numbers allowed.")
         state.args.append(v)
         del args[0]
     except ValueError:
@@ -133,7 +133,7 @@ class Market(callbacks.Plugin):
         yahoorate = json.loads(yahoorate, parse_float=str, parse_int=str)
         rate = yahoorate['query']['results']['rate']['Rate']
         if float(rate) == 0:
-            raise ValueError, "no data"
+            raise ValueError("no data")
         self.currency_cache[cur1 + cur2] = {'time':time.time(), 'rate':rate}
         return rate
 
@@ -189,7 +189,7 @@ class Market(callbacks.Plugin):
     def _getKrkDepth(self, currency='EUR'):
         if world.testing: # avoid hammering api when testing.
             depth = json.load(open('/tmp/kraken.depth.json'))
-            depth = depth['result'][depth['result'].keys()[0]]
+            depth = depth['result'][list(depth['result'].keys())[0]]
             depth['bids'] = [{'price':float(b[0]), 'amount':float(b[1])} for b in depth['bids']]
             depth['asks'] = [{'price':float(b[0]), 'amount':float(b[1])} for b in depth['asks']]
             self.depth_cache['krk'+currency] = {'time':time.time(), 'depth':depth}
@@ -219,7 +219,7 @@ class Market(callbacks.Plugin):
                         return # oh well try again later
                 else:
                     return
-            depth = depth['result'][depth['result'].keys()[0]]
+            depth = depth['result'][list(depth['result'].keys())[0]]
             # make consistent format with mtgox
             stddepth.update({'bids': [{'price':float(b[0])*yahoorate, 'amount':float(b[1])} for b in depth['bids']],
                     'asks': [{'price':float(b[0])*yahoorate, 'amount':float(b[1])} for b in depth['asks']]})
@@ -246,7 +246,7 @@ class Market(callbacks.Plugin):
             data = urlopen('https://api.bitfinex.com/v1/book/BTCUSD').read()
             depth = json.loads(data)
             vintage = time.time()
-            if depth.has_key('message'):
+            if 'message' in depth:
                 return # looks like an error, try again later
             if currency != 'USD':
                 try:
@@ -258,7 +258,7 @@ class Market(callbacks.Plugin):
             stddepth.update({'bids': [{'price':float(b['price'])*yahoorate, 'amount':float(b['amount'])} for b in depth['bids']],
                     'asks': [{'price':float(b['price'])*yahoorate, 'amount':float(b['amount'])} for b in depth['asks']]})
             self.depth_cache['bfx'+currency] = {'time':vintage, 'depth':stddepth}
-            print 'moo'
+            print('moo')
         except:
             traceback.print_exc()
             pass # oh well, try again later.
@@ -282,11 +282,11 @@ class Market(callbacks.Plugin):
             data = urlopen('https://btc-e.com/api/2/btc_%s/depth' % (currency.lower(),)).read()
             depth = json.loads(data)
             vintage = time.time()
-            if depth.has_key('error'):
+            if 'error' in depth:
                 if "invalid pair" in depth['error']:
                     # looks like we have unsupported currency, default to EUR
                     depth = json.loads(urlopen("https://btc-e.com/api/2/btc_usd/depth").read())
-                    if depth.has_key('error'):
+                    if 'error' in depth:
                         return # oh well try again later
                     try:
                         stddepth = {'warning':'using yahoo currency conversion'}
@@ -324,7 +324,7 @@ class Market(callbacks.Plugin):
             vintage = time.time()
             if currency != 'EUR':
                 yahoorate = float(self._queryYahooRate('EUR', currency))
-            if depth.has_key('errors'):
+            if 'errors' in depth:
                 return
             # make consistent format with mtgox
             stddepth.update({'bids': [{'price':float(b['price'])*yahoorate, 'amount':float(b['amount'])} for b in depth['bids']],
@@ -378,12 +378,12 @@ class Market(callbacks.Plugin):
             try:
                 json_data = urlopen("https://data.mtgox.com/api/2/BTC%s/money/ticker" % (currency.upper(),)).read()
                 ticker = json.loads(json_data)
-            except Exception, e:
+            except Exception as e:
                 ticker = {"result":"error", "error":e}
             try:
                 ftj = urlopen("https://data.mtgox.com/api/2/BTC%s/money/ticker_fast" % (currency.upper(),)).read()
                 tf = json.loads(ftj)
-            except Exception, e:
+            except Exception as e:
                 tf = {"result":"error", "error":e}
             if ticker['result'] == 'error' and currency != 'USD':
                 # maybe currency just doesn't exist, so try USD and convert.
@@ -426,10 +426,10 @@ class Market(callbacks.Plugin):
         json_data = urlopen("https://btc-e.com/api/2/%s/ticker" % (pair,)).read()
         ticker = json.loads(json_data)
         yahoorate = 1
-        if ticker.has_key('error'):
+        if 'error' in ticker:
             # maybe we have unsupported currency
             ticker = json.loads(urlopen("https://btc-e.com/api/2/btc_usd/ticker").read())
-            if ticker.has_key('error'):
+            if 'error' in ticker:
                 stdticker = {'error':ticker['error']}
                 return stdticker
             try:
@@ -519,7 +519,7 @@ class Market(callbacks.Plugin):
             else:
                 stdticker = {'error':ticker['error']}
                 return stdticker
-        ticker = ticker['result'][ticker['result'].keys()[0]]
+        ticker = ticker['result'][list(ticker['result'].keys())[0]]
         stdticker.update({'bid': float(ticker['b'][0])*yahoorate,
                             'ask': float(ticker['a'][0])*yahoorate,
                             'last': float(ticker['c'][0])*yahoorate,
@@ -540,7 +540,7 @@ class Market(callbacks.Plugin):
         stdticker = {}
         json_data = urlopen("https://bitcoin-central.net/api/v1/data/eur/ticker").read()
         ticker = json.loads(json_data)
-        if ticker.has_key('errors'):
+        if 'errors' in ticker:
             stdticker = {'error':ticker['errors']}
             return stdticker
         yahoorate = 1
@@ -604,7 +604,7 @@ class Market(callbacks.Plugin):
         spotticker = json.loads(json_data)
         json_data = urlopen("https://api.bitfinex.com/v1/today/%s" % (pair,)).read()
         dayticker = json.loads(json_data)
-        if spotticker.has_key('message') or dayticker.has_key('message'):
+        if 'message' in spotticker or 'message' in dayticker:
             stdticker = {'error':spotticker.get('message') or dayticker.get('message')}
         else:
             if currency.lower() == 'ltc':
@@ -736,7 +736,7 @@ class Market(callbacks.Plugin):
             pass
         try:
             ticker = json.loads(urlopen('https://api.bitcoinaverage.com/ticker/%s' % (currency,)).read())
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
             stdticker = {'error':'Unsupported currency.'}
             return stdticker
         except:
@@ -896,7 +896,7 @@ class Market(callbacks.Plugin):
         currency = od.pop('currency','USD')
         m = self._getMarketInfo(market, 'depth')
         if m is None:
-            irc.error("This is not one of the supported markets. Please choose one of %s." % (self.depth_supported_markets.keys(),))
+            irc.error("This is not one of the supported markets. Please choose one of %s." % (list(self.depth_supported_markets.keys()),))
             return
         m[2](currency)
         cachename = m[0]+currency
@@ -906,7 +906,7 @@ class Market(callbacks.Plugin):
             irc.error("Failure to retrieve order book data. Try again later.")
             traceback.print_exc()
             return
-        if od.has_key('fiat'):
+        if 'fiat' in od:
             r = self._sellusd(bids, value)
             if r['all']:
                 irc.reply("%s | This order would exceed the size of the order book. "
@@ -989,7 +989,7 @@ class Market(callbacks.Plugin):
         currency = od.pop('currency','USD')
         m = self._getMarketInfo(market, 'depth')
         if m is None:
-            irc.error("This is not one of the supported markets. Please choose one of %s." % (self.depth_supported_markets.keys(),))
+            irc.error("This is not one of the supported markets. Please choose one of %s." % (list(self.depth_supported_markets.keys()),))
             return
         m[2](currency)
         cachename = m[0]+currency
@@ -998,7 +998,7 @@ class Market(callbacks.Plugin):
         except KeyError:
             irc.error("Failure to retrieve order book data. Try again later.")
             return
-        if dict(optlist).has_key('fiat'):
+        if 'fiat' in dict(optlist):
             r = self._buyusd(asks, value)
             if r['all']:
                 irc.reply("%s | This order would exceed the size of the order book. "
@@ -1046,12 +1046,12 @@ class Market(callbacks.Plugin):
         currency = od.pop('currency','USD')
         m = self._getMarketInfo(market, 'depth')
         if m is None:
-            irc.error("This is not one of the supported markets. Please choose one of %s." % (self.depth_supported_markets.keys(),))
+            irc.error("This is not one of the supported markets. Please choose one of %s." % (list(self.depth_supported_markets.keys()),))
             return
         m[2](currency)
         cachename = m[0]+currency
         response = "under"
-        if dict(optlist).has_key('over'):
+        if 'over' in dict(optlist):
             f = lambda price,pricetarget: price >= pricetarget
             response = "over"
         else:
@@ -1088,12 +1088,12 @@ class Market(callbacks.Plugin):
         currency = od.pop('currency','USD')
         m = self._getMarketInfo(market, 'depth')
         if m is None:
-            irc.error("This is not one of the supported markets. Please choose one of %s." % (self.depth_supported_markets.keys(),))
+            irc.error("This is not one of the supported markets. Please choose one of %s." % (list(self.depth_supported_markets.keys()),))
             return
         m[2](currency)
         cachename = m[0]+currency
         response = "over"
-        if dict(optlist).has_key('under'):
+        if 'under' in dict(optlist):
             f = lambda price,pricetarget: price <= pricetarget
             response = "under"
         else:
@@ -1130,7 +1130,7 @@ class Market(callbacks.Plugin):
         currency = od.pop('currency','USD')
         m = self._getMarketInfo(market, 'depth')
         if m is None:
-            irc.error("This is not one of the supported markets. Please choose one of %s." % (self.depth_supported_markets.keys(),))
+            irc.error("This is not one of the supported markets. Please choose one of %s." % (list(self.depth_supported_markets.keys()),))
             return
         m[2](currency)
         cachename = m[0]+currency
@@ -1164,7 +1164,7 @@ class Market(callbacks.Plugin):
         currency = od.pop('currency', 'USD')
         m = self._getMarketInfo(market, 'depth')
         if m is None:
-            irc.error("This is not one of the supported markets. Please choose one of %s." % (self.depth_supported_markets.keys(),))
+            irc.error("This is not one of the supported markets. Please choose one of %s." % (list(self.depth_supported_markets.keys()),))
             return
         m[2](currency)
         try:
@@ -1189,16 +1189,16 @@ class Market(callbacks.Plugin):
 
     def _getMarketInfo(self, input, action='ticker'):
         sm = getattr(self, action + '_supported_markets')
-        sml = sm.keys()+sm.values()
+        sml = list(sm.keys())+list(sm.values())
         dl = [dameraulevenshtein(input.lower(), i.lower()) for i in sml]
         if (min(dl) <= 2):
             mkt = (sml)[dl.index(min(dl))]
         else:
             return None
-        if mkt.lower() in sm.keys():
+        if mkt.lower() in list(sm.keys()):
             return [mkt.lower(), sm[mkt.lower()],
                     getattr(self, '_get' + mkt.capitalize() + action.capitalize()),]
-        r = filter(lambda x: sm[x].lower() == mkt.lower(), sm)
+        r = [x for x in sm if sm[x].lower() == mkt.lower()]
         if len(r) == 1:
             return [r[0], sm[r[0]],
                     getattr(self, '_get' + r[0].capitalize() + action.capitalize()),]
@@ -1214,7 +1214,7 @@ class Market(callbacks.Plugin):
         r1 = self._getMarketInfo(market1)
         r2 = self._getMarketInfo(market2)
         if r1 is None or r2 is None:
-            irc.error("This is not one of the supported markets. Please choose one of %s." % (self.ticker_supported_markets.keys(),))
+            irc.error("This is not one of the supported markets. Please choose one of %s." % (list(self.ticker_supported_markets.keys()),))
             return
         try:
             last1 = float(r1[2]('USD')['last'])
@@ -1243,7 +1243,7 @@ class Market(callbacks.Plugin):
         market = od.pop('market','btsp')
         r = self._getMarketInfo(market)
         if r is None and market.lower() != 'all':
-            irc.error("This is not one of the supported markets. Please choose one of %s or 'all'" % (self.ticker_supported_markets.keys(),))
+            irc.error("This is not one of the supported markets. Please choose one of %s or 'all'" % (list(self.ticker_supported_markets.keys()),))
             return
         if len(od) > 1:
             irc.error("Please only choose at most one result option at a time.")
@@ -1251,12 +1251,12 @@ class Market(callbacks.Plugin):
         if market != 'all':
             try:
                 ticker = r[2](currency)
-            except Exception, e:
+            except Exception as e:
                 irc.error("Failure to retrieve ticker. Try again later.")
                 self.log.info("Problem retrieving ticker. Market %s, Error: %s" %\
                             (market, e,))
                 return
-            if ticker.has_key('error'):
+            if 'error' in ticker:
                 irc.error('Error retrieving ticker. Details: %s' % (ticker['error'],))
                 return
 
@@ -1268,7 +1268,7 @@ class Market(callbacks.Plugin):
                     ticker['vol'], ticker['low'], ticker['high'],
                     ticker['avg']))
             else:
-                key = od.keys()[0]
+                key = list(od.keys())[0]
                 irc.reply(ticker[key])
         else:
             response = ""
@@ -1370,7 +1370,7 @@ class Market(callbacks.Plugin):
         try:
             data = urlopen('http://api.bitcoincharts.com/v1/weighted_prices.json').read()
             j = json.loads(data)
-            curs = j.keys()
+            curs = list(j.keys())
             curs.remove('timestamp')
         except:
             irc.error("Failed to retrieve data. Try again later.")

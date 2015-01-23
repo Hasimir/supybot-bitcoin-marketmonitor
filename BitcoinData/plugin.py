@@ -34,16 +34,16 @@ import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 
-from urllib2 import urlopen
+from urllib.request import urlopen
 import json
 import re
 import time
 import math
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
-opener = urllib2.build_opener()
+opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0')]
-urllib2.install_opener(opener)
+urllib.request.install_opener(opener)
 
 def getPositiveFloat(irc, msg, args, state, type='positiveFloat'):
     v = args[0]
@@ -106,7 +106,7 @@ class BitcoinData(callbacks.Plugin):
         data = self._grabapi(['/block-height/%s?format=json' % blocknum, bbeurl, ])
         try:
             j = json.loads(data)
-            if 'blocks' in j.keys():
+            if 'blocks' in list(j.keys()):
                 j = j['blocks'][0]
             return j
         except:
