@@ -510,10 +510,10 @@ class RatingSystem(callbacks.Plugin):
         See http://wiki.bitcoin-otc.com/wiki/OTC_Rating_System#Notes_about_gettrust
         """
         if sourcenick == '' or destnick == '':
-			cmd = str(msg).rstrip('\r\n')
-			cmd = re.sub(r':.*?:', '', cmd)
-			irc.error("You provided an empty string as argument. Your command: %s." % (cmd,))
-			return
+            cmd = str(msg).rstrip('\r\n')
+            cmd = re.sub(r':.*?:', '', cmd)
+            irc.error("You provided an empty string as argument. Your command: %s." % (cmd,))
+            return
         gpgauth = self._checkGPGAuth(irc, msg.prefix)
         if gpgauth is not None:
             sn = gpgauth['nick']
